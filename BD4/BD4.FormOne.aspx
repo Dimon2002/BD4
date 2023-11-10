@@ -5,19 +5,9 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head runat="server">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title></title>
-    <style>
-        .container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 10vh;
-        }
+    <title>Задание 1</title>
 
-        .button-margin {
-            margin-bottom: 20px;
-        }
-    </style>
+    <link rel="stylesheet" href="Content/styles.css" />
 </head>
 <body>
     <form id="form1" runat="server">
@@ -47,7 +37,11 @@
 
         <div>
             <asp:Button ID="ExecuteRequestButton" runat="server" Text="Выполнить запрос" OnClick="ExecuteRequestButton_Click" class="button-margin" />
+            <asp:Button ID="Button1" runat="server" Text="Перейти к заданию 2" OnClick="Button1_Click" />
+            <asp:Button ID="Button2" runat="server" Text="Вернуться на начальную страницу" OnClick="Button2_Click" />
         </div>
+
+
 
         <div>
             <asp:Label ID="ErrorLabel" runat="server" Text=""></asp:Label>
@@ -61,7 +55,7 @@
                 <asp:BoundField DataField="Cost" HeaderText="cost" />
             </Columns>
         </asp:GridView>
-        
+
     </form>
 </body>
 </html>

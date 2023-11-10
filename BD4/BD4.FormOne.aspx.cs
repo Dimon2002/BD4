@@ -5,6 +5,12 @@ using System.Data.Odbc;
 using System.Web.UI;
 using System.Web.UI.WebControls;
 
+public class DetailInfo
+{
+    public string DetailNumber { get; set; }
+    public string Cost { get; set; }
+}
+
 public partial class BD4_FormOne : Page
 {
     private readonly OdbcConnection _connection = new OdbcConnection();
@@ -188,11 +194,8 @@ public partial class BD4_FormOne : Page
             ProductRadioButtonList.SelectedIndex = 0;
         }
     }
-}
 
+    protected void Button1_Click(object sender, EventArgs e) => Page.Response.Redirect("BD4.FormTwo.aspx");
 
-public class DetailInfo
-{
-    public string DetailNumber { get; set; }
-    public string Cost { get; set; }
+    protected void Button2_Click(object sender, EventArgs e) => Page.Response.Redirect("MainForm.aspx");
 }

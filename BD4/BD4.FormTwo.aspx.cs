@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Data.Odbc;
+using System.Globalization;
 using System.Text;
 using System.Web.UI;
 
@@ -16,12 +18,13 @@ public partial class BD4_FormTwo : Page
         }
     }
 
-    private string _orderId;
     private string _productId;
     private string _clientId;
-    private string _dateOrder;
-    private string _datePay;
-    private string _dateShip;
+
+    private DateTime _dateOrder;
+    private DateTime _datePay;
+    private DateTime _dateShip;
+
     private int _scopeDelivery;
     private int _costProduct;
 
@@ -70,23 +73,20 @@ public partial class BD4_FormTwo : Page
 
         ExecuteProcedure();
     }
-   
+
     private void ExecuteProcedure()
     {
-        // TODO: TRIM(?) for string
-        // TODO: (concat('R',cast(nextval('pmib0409.first') as varchar)) for n_real ????
-
         const string SQL = "INSERT INTO pmib0409.r VALUES\r\n" +
+            "(concat('R',cast(nextval('pmib0409.seq_n_real') as varchar)), " +
             "?, " +
             "?, " +
             "?, " +
-            "to_date(?, 'yyyy-mm-dd'), " +
-            "to_date(?, 'yyyy-mm-dd'), " +
-            "to_date(?, 'yyyy-mm-dd'), " +
+            "?, " +
+            "?, " +
             "?, " +
             "?);";
 
-        using (_command = new OdbcCommand(SQL,_connection))
+        using (_command = new OdbcCommand(SQL, _connection))
         {
             ParametersSetting();
 
@@ -108,107 +108,77 @@ public partial class BD4_FormTwo : Page
                 Label3.Text = ex.Message;
                 transaction.Rollback();
             }
-            finally 
+            finally
             {
-                transaction.Dispose();
+                transaction?.Dispose();
             }
         }
 
     }
-    
-    // Боже что это..
+
     private void ParametersSetting()
     {
-        var parametr0 = new OdbcParameter();
-        parametr0.OdbcType = OdbcType.Text;
-        parametr0.Value = _orderId;
-        _command.Parameters.Add(parametr0);
+        var parameters = new List<(OdbcType Type, object Value)>
+        {
+            (OdbcType.Text, _productId),
+            (OdbcType.Text, _clientId),
+            (OdbcType.DateTime, _dateOrder),
+            (OdbcType.Date, _isNullDatePay ? DBNull.Value : (object)_datePay),
+            (OdbcType.DateTime, _isNullDateShip ? DBNull.Value : (object)_dateShip),
+            (OdbcType.Int, _scopeDelivery),
+            (OdbcType.Int, _costProduct)
+        };
 
-        var parametr1 = new OdbcParameter();
-        parametr1.OdbcType = OdbcType.Text;
-        parametr1.Value = _productId;
-        _command.Parameters.Add(parametr1);
-
-        var parametr2 = new OdbcParameter();
-        parametr2.OdbcType = OdbcType.Text;
-        parametr2.Value = _clientId;
-        _command.Parameters.Add(parametr2);
-
-        var parametr3 = new OdbcParameter();
-        parametr3.OdbcType = OdbcType.Text;
-        parametr3.Value = _dateOrder;
-        _command.Parameters.Add(parametr3);
-
-        var parametr4 = new OdbcParameter();
-        parametr4.OdbcType = OdbcType.Text;
-        parametr4.Value = /*_isNullDatePay ? null : */_datePay;
-        _command.Parameters.Add(parametr4);
-
-        var parametr5 = new OdbcParameter();
-        parametr5.OdbcType = OdbcType.Text;
-        parametr5.Value = /*_isNullDateShip ? null :*/ _dateShip;
-        _command.Parameters.Add(parametr5);
-
-        var parametr6 = new OdbcParameter();
-        parametr6.OdbcType = OdbcType.Int;
-        parametr6.Value = _scopeDelivery;
-        _command.Parameters.Add(parametr6);
-
-        var parametr7 = new OdbcParameter();
-        parametr7.OdbcType = OdbcType.Int;
-        parametr7.Value = _costProduct;
-        _command.Parameters.Add(parametr7);
+        parameters.ForEach(p => _command.Parameters.Add(new OdbcParameter { OdbcType = p.Type, Value = p.Value }));
     }
 
     private bool ValidationData()
     {
-        /*if (!DateTime.TryParse(date_order.Text, out _dateOrder))
+        if (string.IsNullOrEmpty(n_izd.Text))
         {
-            _validationError.AppendLine("Не коректная дата заказа!");
+            _validationError.Append("Некорректно указан номер изделия!<br />");
         }
 
-        if (date_pay.Text.Length == 0)
+        if (string.IsNullOrEmpty(n_cl.Text))
         {
-            _isNullDatePay = true;
-        }
-        else
-        {
-            if (!DateTime.TryParse(date_pay.Text, out _datePay))
-            {
-                _validationError.AppendLine("Не коректная дата оплаты!");
-            }
+            _validationError.Append("Некорректно указан номер покупателя!<br />");
         }
 
-        if (date_ship.Text.Length == 0)
-        {
-            _isNullDateShip = true;
-        }
-        else
-        {
-            if (!DateTime.TryParse(date_ship.Text, out _dateShip))
-            {
-                _validationError.AppendLine("Не коректная дата отправки заказа!");
-            }
-        }*/
-
-        _orderId = n_real.Text;
         _productId = n_izd.Text;
         _clientId = n_cl.Text;
-        _dateOrder = date_order.Text;
+        
+        _isNullDatePay = string.IsNullOrEmpty(date_pay.Text);
+        _isNullDateShip = string.IsNullOrEmpty(date_ship.Text);
 
-        _datePay = date_pay.Text;
-        _dateShip = date_ship.Text;
+        if (!DateTime.TryParseExact(date_order.Text, "dd-MM-yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out _dateOrder))
+        {
+            _validationError.AppendLine("Некорректная дата заказа!<br />");
+        }
+
+        if (!_isNullDatePay && !DateTime.TryParseExact(date_pay.Text, "dd-MM-yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out _datePay))
+        {
+            _validationError.AppendLine("Некорректная дата оплаты!<br />");
+        }
+        
+        if (!_isNullDateShip && !DateTime.TryParseExact(date_ship.Text, "dd-MM-yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out _dateShip))
+        {
+            _validationError.AppendLine("Некорректная дата отправки заказа!<br />");
+        }
 
         if (!Int32.TryParse(kol.Text, out _scopeDelivery) || _scopeDelivery < 1)
         {
-            _validationError.AppendLine("Некоректно укзан обьем поставки изделий!");
+            _validationError.AppendLine("Некоректно укзан обьем поставки изделий!<br />");
         }
 
         if (!Int32.TryParse(cost.Text, out _costProduct) || _costProduct < 1)
         {
-            _validationError.AppendLine("Некоректно укзана отпускная цена изделия\r\n!");
-        }    
+            _validationError.AppendLine("Некоректно укзана отпускная цена изделия!<br />");
+        }
 
         return _validationError.Length == 0;
     }
+
+    protected void Button1_Click(object sender, EventArgs e) => Page.Response.Redirect("BD4.FormOne.aspx");
+
+    protected void Button2_Click(object sender, EventArgs e) => Page.Response.Redirect("MainForm.aspx");
 }
