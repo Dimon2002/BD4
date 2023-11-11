@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Odbc;
+using System.Reflection.Emit;
 using System.Web.UI;
 using System.Web.UI.WebControls;
 
@@ -41,6 +42,9 @@ public partial class BD4_FormOne : Page
     protected void Page_Load(object sender, EventArgs e)
     {
         ResponseGrid.DataSource = _res;
+
+        Label3.Text = string.Empty;
+        Label3.Visible = true;
 
         Connect();
 
