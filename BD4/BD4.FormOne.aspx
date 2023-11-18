@@ -23,14 +23,20 @@
         <asp:Label ID="Label2" runat="server" Text="Пожалуйста, выберите изделие."></asp:Label>
 
         <asp:Table ID="Table1" runat="server">
-            <asp:TableHeaderRow>
-                <asp:TableHeaderCell>n_izd</asp:TableHeaderCell>
-            </asp:TableHeaderRow>
-
             <asp:TableRow>
                 <asp:TableCell>
-                    <asp:RadioButtonList ID="ProductRadioButtonList" runat="server" AutoPostBack="true" OnSelectedIndexChanged="ProductRadioButtonList_SelectedIndexChanged">
-                    </asp:RadioButtonList>
+                    <asp:GridView ID="ProductGridView" runat="server" AutoGenerateColumns="False">
+                        <Columns>
+                            <asp:TemplateField>
+                                <ItemTemplate>
+                                    <asp:RadioButton ID="RadioButton1" runat="server" GroupName="ProductGroup" AutoPostBack="true" OnCheckedChanged="RadioButton_CheckedChanged" />
+                                </ItemTemplate>
+                            </asp:TemplateField>
+                            <asp:BoundField DataField="n_izd" HeaderText="n_izd" SortExpression="n_izd" />
+                            <asp:BoundField DataField="name" HeaderText="Name" SortExpression="name" />
+                            <asp:BoundField DataField="town" HeaderText="Town" SortExpression="town" />
+                        </Columns>
+                    </asp:GridView>
                 </asp:TableCell>
             </asp:TableRow>
         </asp:Table>

@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Odbc;
-using System.Reflection.Emit;
 using System.Web.UI;
 using System.Web.UI.WebControls;
 
@@ -16,6 +15,8 @@ public partial class BD4_FormOne : Page
 {
     private readonly OdbcConnection _connection = new OdbcConnection();
     private OdbcCommand _command;
+    private DataTable _dt = new DataTable();
+    private List<DetailInfo> _res = new List<DetailInfo>();
 
     private string _connectionString
     {
@@ -37,8 +38,6 @@ public partial class BD4_FormOne : Page
         }
     }
 
-    private List<DetailInfo> _res = new List<DetailInfo>();
-
     protected void Page_Load(object sender, EventArgs e)
     {
         ResponseGrid.DataSource = _res;
@@ -50,6 +49,7 @@ public partial class BD4_FormOne : Page
 
         if (!IsPostBack && _connection.State == ConnectionState.Open)
         {
+            ProductGridView.DataSource = _dt;
             ReceivingListProducts();
         }
     }
@@ -83,14 +83,6 @@ public partial class BD4_FormOne : Page
     {
         if (_connection.State == ConnectionState.Open)
             ExecuteProcedure();
-    }
-
-    protected void ProductRadioButtonList_SelectedIndexChanged(object sender, EventArgs e)
-    {
-        if (!string.IsNullOrEmpty(ProductRadioButtonList.SelectedValue))
-        {
-            _selectedProduct = ProductRadioButtonList.SelectedValue;
-        }
     }
 
     private void ExecuteProcedure()
@@ -146,7 +138,7 @@ public partial class BD4_FormOne : Page
         }
 
         ResponseGrid.DataBind();
-    
+
         if (_res.Count == 0)
         {
             Label3.Visible = true;
@@ -156,9 +148,7 @@ public partial class BD4_FormOne : Page
 
     private void ReceivingListProducts()
     {
-        //ProductRadioButtonList.Items.Clear();
-
-        const string SQL = "SELECT n_izd AS n_izd FROM pmib0409.j";
+        const string SQL = "SELECT * FROM pmib0409.j";
 
         using (_command = new OdbcCommand(SQL, _connection))
         {
@@ -172,11 +162,7 @@ public partial class BD4_FormOne : Page
 
                 reader = _command.ExecuteReader();
 
-                while (reader.Read())
-                {
-                    string value = reader["n_izd"].ToString();
-                    ProductRadioButtonList.Items.Add(new ListItem(value));
-                }
+                _dt.Load(reader);
 
                 transaction.Commit();
             }
@@ -192,11 +178,38 @@ public partial class BD4_FormOne : Page
             }
         }
 
-        if (ProductRadioButtonList.Items.Count > 0)
+        ProductGridView.DataBind();
+
+        if (ProductGridView.Rows.Count > 0)
         {
-            _selectedProduct = ProductRadioButtonList.Items[0].Value;
-            ProductRadioButtonList.SelectedIndex = 0;
+            _selectedProduct = ProductGridView.Rows[0].Cells[1].Text;
+
+            var radio = ProductGridView.Rows[0].Cells[0].Controls[1] as RadioButton;
+            radio.Checked = true;
         }
+    }
+
+    protected void RadioButton_CheckedChanged(object sender, EventArgs e)
+    {
+        RadioButton radioButton = (RadioButton)sender;
+        GridViewRow selectedRow = (GridViewRow)radioButton.Parent.Parent;
+
+        int rowIndex = selectedRow.RowIndex;
+
+        foreach (var x in ProductGridView.Rows)
+        {
+            var item = (GridViewRow)x;
+            var radio = (RadioButton)item.Cells[0].Controls[1];
+
+            if (radio == sender)
+            {
+                continue;
+            }
+
+            radio.Checked = false;
+        }
+
+        _selectedProduct = ProductGridView.Rows[rowIndex].Cells[1].Text.Trim();
     }
 
     protected void Button1_Click(object sender, EventArgs e) => Page.Response.Redirect("BD4.FormTwo.aspx");

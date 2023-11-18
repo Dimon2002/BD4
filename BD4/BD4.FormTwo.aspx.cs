@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Data.Odbc;
 using System.Globalization;
 using System.Text;
@@ -7,19 +8,25 @@ using System.Web.UI;
 
 public partial class BD4_FormTwo : Page
 {
+    private const string DateFormat = "yyyy-MM-dd";
+    private string _connectionString => System.Configuration.ConfigurationManager.ConnectionStrings["connection"].ConnectionString;
+    
     private readonly OdbcConnection _connection = new OdbcConnection();
     private OdbcCommand _command;
 
-    private string _connectionString
-    {
-        get
-        {
-            return System.Configuration.ConfigurationManager.ConnectionStrings["connection"].ConnectionString;
-        }
-    }
+    private StringBuilder _validationError = new StringBuilder();
 
-    private string _productId;
-    private string _clientId;
+    private string _productId
+    {
+        get => ViewState["_productId"] as string ?? string.Empty;
+        set => ViewState["_productId"] = value;
+    }
+    
+    private string _clientId
+    {
+        get => ViewState["_clientId"] as string ?? string.Empty;
+        set => ViewState["_clientId"] = value;
+    }
 
     private DateTime _dateOrder;
     private DateTime _datePay;
@@ -31,11 +38,15 @@ public partial class BD4_FormTwo : Page
     private bool _isNullDatePay;
     private bool _isNullDateShip;
 
-    private StringBuilder _validationError = new StringBuilder();
-
     protected void Page_Load(object sender, EventArgs e)
     {
         Connect();
+
+        if (!IsPostBack && _connection.State == ConnectionState.Open)
+        {
+            ReceivingListClients();
+            ReceivingListProducts();
+        }
     }
 
     protected void Page_Unload(object sender, EventArgs e)
@@ -61,6 +72,22 @@ public partial class BD4_FormTwo : Page
     private void Disconnect()
     {
         _connection.Dispose();
+    }
+
+    protected void ProductIdListBox_SelestedIndexChanged(object sender, EventArgs e)
+    {
+        if (ProductIdListBox.SelectedIndex >= 0)
+        {
+            _productId = ProductIdListBox.SelectedItem.Text.Split(' ')[0];
+        }
+    }
+
+    protected void ClientListBox_SelectedIndexChanged(object sender, EventArgs e)
+    {
+        if (ClientListBox.SelectedIndex >= 0)
+        {
+            _clientId = ClientListBox.SelectedItem.Text.Split(' ')[0];
+        }
     }
 
     protected void ExecuteRequestButton_Click(object sender, EventArgs e)
@@ -134,33 +161,20 @@ public partial class BD4_FormTwo : Page
 
     private bool ValidationData()
     {
-        if (string.IsNullOrEmpty(n_izd.Text))
-        {
-            _validationError.Append("Некорректно указан номер изделия!<br />");
-        }
-
-        if (string.IsNullOrEmpty(n_cl.Text))
-        {
-            _validationError.Append("Некорректно указан номер покупателя!<br />");
-        }
-
-        _productId = n_izd.Text;
-        _clientId = n_cl.Text;
-        
         _isNullDatePay = string.IsNullOrEmpty(date_pay.Text);
         _isNullDateShip = string.IsNullOrEmpty(date_ship.Text);
 
-        if (!DateTime.TryParseExact(date_order.Text, "dd-MM-yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out _dateOrder))
+        if (!DateTime.TryParseExact(date_order.Text, DateFormat, CultureInfo.InvariantCulture, DateTimeStyles.None, out _dateOrder))
         {
             _validationError.AppendLine("Некорректная дата заказа!<br />");
         }
 
-        if (!_isNullDatePay && !DateTime.TryParseExact(date_pay.Text, "dd-MM-yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out _datePay))
+        if (!_isNullDatePay && !DateTime.TryParseExact(date_pay.Text, DateFormat, CultureInfo.InvariantCulture, DateTimeStyles.None, out _datePay))
         {
             _validationError.AppendLine("Некорректная дата оплаты!<br />");
         }
-        
-        if (!_isNullDateShip && !DateTime.TryParseExact(date_ship.Text, "dd-MM-yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out _dateShip))
+
+        if (!_isNullDateShip && !DateTime.TryParseExact(date_ship.Text, DateFormat, CultureInfo.InvariantCulture, DateTimeStyles.None, out _dateShip))
         {
             _validationError.AppendLine("Некорректная дата отправки заказа!<br />");
         }
@@ -176,6 +190,97 @@ public partial class BD4_FormTwo : Page
         }
 
         return _validationError.Length == 0;
+    }
+
+    private void ReceivingListProducts()
+    {
+        const string SQL = "SELECT * FROM pmib0409.j";
+
+        using (_command = new OdbcCommand(SQL, _connection))
+        {
+            OdbcTransaction transaction = null;
+            OdbcDataReader reader = null;
+
+            try
+            {
+                transaction = _connection.BeginTransaction();
+                _command.Transaction = transaction;
+
+                reader = _command.ExecuteReader();
+
+                while (reader.Read())
+                {
+                    var productId = reader["n_izd"].ToString();
+                    var productName = reader["name"].ToString();
+                    var productTown = reader["town"].ToString();
+
+                    ProductIdListBox.Items.Add(productId + "| " + productName + "| " + productTown);
+                }
+
+                transaction.Commit();
+            }
+            catch (Exception ex)
+            {
+                Label3.Text = ex.Message;
+                transaction.Rollback();
+            }
+            finally
+            {
+                transaction?.Dispose();
+                reader?.Dispose();
+            }
+        }
+
+        if (ProductIdListBox.Items.Count > 0)
+        {
+            _productId = ProductIdListBox.Items[0].Text.Split(' ')[0];
+        }
+    }
+
+    private void ReceivingListClients()
+    {
+        const string SQL = "SELECT * FROM pmib0409.c";
+
+        using (_command = new OdbcCommand(SQL, _connection))
+        {
+            OdbcTransaction transaction = null;
+            OdbcDataReader reader = null;
+
+            try
+            {
+                transaction = _connection.BeginTransaction();
+                _command.Transaction = transaction;
+
+                reader = _command.ExecuteReader();
+
+                while (reader.Read())
+                {
+                    var clientId = reader["n_cl"].ToString();
+                    var clientName = reader["name"].ToString();
+                    var clentTown = reader["town"].ToString();
+                    var clientDiscount = reader["discount"].ToString();
+
+                    ClientListBox.Items.Add(clientId + "| " + clientName + "| " + clentTown + "| " + clientDiscount);
+                }
+
+                transaction.Commit();
+            }
+            catch (Exception ex)
+            {
+                Label3.Text = ex.Message;
+                transaction.Rollback();
+            }
+            finally 
+            {
+                transaction?.Dispose();
+                reader?.Dispose();
+            }
+        }
+
+        if (ClientListBox.Items.Count > 0)
+        {
+            _clientId = ClientListBox.Items[0].Text.Split(' ')[0];
+        }
     }
 
     protected void Button1_Click(object sender, EventArgs e) => Page.Response.Redirect("BD4.FormOne.aspx");

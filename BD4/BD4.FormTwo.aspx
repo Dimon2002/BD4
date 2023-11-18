@@ -17,15 +17,19 @@
 
     <link rel="stylesheet" href="Content/styles.css" />
     <script src="Scripts/scripts.js"></script>
+    <script src="Scripts/forms.js" defer></script>
+
 
 </head>
 <body>
     <form id="form1" runat="server">
 
+        <!-- Статус соединеня !-->
         <div class="container">
             <asp:Label ID="ConnectLabel" runat="server" Text=""></asp:Label>
         </div>
 
+        <!-- Задание !-->
         <div class="ml-2">
             <asp:Label ID="Label1" runat="server" Text="Задание:  Вставить заказ с указанными параметрами. "></asp:Label>
         </div>
@@ -33,35 +37,53 @@
         <asp:Label class="ml-2" ID="Label2" runat="server" Text="Пожалуйста, заполните параметры заказа."></asp:Label>
 
         <div class="ml-4">
+
+
             <div class="mb-2">
-                <asp:TextBox runat="server" ID="n_izd" MaxLength="6" placeholder="n_izd" />
+                <asp:Label ID="Label7" runat="server" Text="Номер изделия"></asp:Label>
+                <asp:DropDownList ID="ProductIdListBox" runat="server" AutoPostBack="False" OnSelectedIndexChanged="ProductIdListBox_SelestedIndexChanged"></asp:DropDownList>
+                <%--<asp:TextBox runat="server" ID="n_izd" MaxLength="6" placeholder="n_izd" />--%>
             </div>
 
             <div class="mb-2">
-                <asp:TextBox runat="server" ID="n_cl" MaxLength="6" placeholder="n_cl" />
+                <asp:Label ID="Label8" runat="server" Text="Номер покупателя"></asp:Label>
+                <asp:DropDownList ID="ClientListBox" runat="server" AutoPostBack="False" OnSelectedIndexChanged="ClientListBox_SelectedIndexChanged"></asp:DropDownList>
+                <%--<asp:TextBox runat="server" ID="n_cl" MaxLength="6" placeholder="n_cl" />--%>
             </div>
-
+            
+            <!-- Дата заказа !-->
             <div class="mb-2">
-                <asp:TextBox runat="server" ID="date_order" placeholder="date_order" />
+                <asp:Label ID="Label4" runat="server" Text="Дата заказа"></asp:Label>
+                <input type="date" id="order_date"/>
+                <asp:TextBox runat="server" ID="date_order" hidden/>
             </div>
 
+            <!-- Дата оплаты !-->
             <div class="mb-2">
-                <asp:TextBox runat="server" ID="date_pay" placeholder="date_pay" data-toggle="tooltip" title="Can be NULL" />
+                <asp:Label ID="Label5" runat="server" Text="Дата оплаты"></asp:Label>
+                <input type="date" id="pay_date"/>
+                <asp:TextBox runat="server" ID="date_pay" hidden/>
             </div>
 
+            <!-- Дата отправки заказа !-->
             <div class="mb-2">
-                <asp:TextBox runat="server" ID="date_ship" placeholder="date_ship" data-toggle="tooltip" title="Can be NULL" />
+                <asp:Label ID="Label6" runat="server" Text="Дата отправки заказа"></asp:Label>
+                <input type="date" id="ship_date"/>
+                <asp:TextBox runat="server" ID="date_ship" hidden/>
             </div>
 
+            <!-- Объем поставки !-->
             <div class="mb-2">
                 <asp:TextBox runat="server" ID="kol" placeholder="kol" min="0" />
             </div>
 
+            <!-- Цена !-->
             <div class="mb-2">
                 <asp:TextBox runat="server" ID="cost" placeholder="cost" min="0" />
             </div>
         </div>
 
+        <!-- Навигация !-->
         <div class="mb-2 ml-2">
             <asp:Button ID="ExecuteRequestButton" runat="server" Text="Выполнить запрос" OnClick="ExecuteRequestButton_Click" class="button-margin" />
             <asp:Button ID="Button1" runat="server" Text="Перейти к заданию 1" OnClick="Button1_Click" />
