@@ -5,6 +5,7 @@ using System.Data.Odbc;
 using System.Globalization;
 using System.Text;
 using System.Web.UI;
+using System.Web.UI.WebControls;
 
 public partial class BD4_FormTwo : Page
 {
@@ -78,7 +79,7 @@ public partial class BD4_FormTwo : Page
     {
         if (ProductIdListBox.SelectedIndex >= 0)
         {
-            _productId = ProductIdListBox.SelectedItem.Text.Split(' ')[0];
+            _productId = ProductIdListBox.SelectedItem.Value;
         }
     }
 
@@ -86,7 +87,7 @@ public partial class BD4_FormTwo : Page
     {
         if (ClientListBox.SelectedIndex >= 0)
         {
-            _clientId = ClientListBox.SelectedItem.Text.Split(' ')[0];
+            _clientId = ClientListBox.SelectedItem.Value;
         }
     }
 
@@ -214,7 +215,7 @@ public partial class BD4_FormTwo : Page
                     var productName = reader["name"].ToString();
                     var productTown = reader["town"].ToString();
 
-                    ProductIdListBox.Items.Add(productId + "| " + productName + "| " + productTown);
+                    ProductIdListBox.Items.Add(new ListItem(productName + "| " + productTown, productId.Trim()));
                 }
 
                 transaction.Commit();
@@ -233,7 +234,7 @@ public partial class BD4_FormTwo : Page
 
         if (ProductIdListBox.Items.Count > 0)
         {
-            _productId = ProductIdListBox.Items[0].Text.Split(' ')[0];
+            _productId = ProductIdListBox.SelectedItem.Value;
         }
     }
 
@@ -260,7 +261,8 @@ public partial class BD4_FormTwo : Page
                     var clentTown = reader["town"].ToString();
                     var clientDiscount = reader["discount"].ToString();
 
-                    ClientListBox.Items.Add(clientId + "| " + clientName + "| " + clentTown + "| " + clientDiscount);
+                    ClientListBox.Items.Add(new ListItem(clientName + "| " + clentTown + "| " + clientDiscount+"%", clientId.Trim()));
+
                 }
 
                 transaction.Commit();
@@ -279,7 +281,7 @@ public partial class BD4_FormTwo : Page
 
         if (ClientListBox.Items.Count > 0)
         {
-            _clientId = ClientListBox.Items[0].Text.Split(' ')[0];
+            _clientId = ClientListBox.SelectedItem.Value;
         }
     }
 

@@ -41,7 +41,8 @@
 
             <div class="mb-2">
                 <asp:Label ID="Label7" runat="server" Text="Номер изделия"></asp:Label>
-                <asp:DropDownList ID="ProductIdListBox" runat="server" AutoPostBack="False" OnSelectedIndexChanged="ProductIdListBox_SelestedIndexChanged"></asp:DropDownList>
+                <asp:DropDownList ID="ProductIdListBox" runat="server" AutoPostBack="False" OnSelectedIndexChanged="ProductIdListBox_SelestedIndexChanged">
+                </asp:DropDownList>
                 <%--<asp:TextBox runat="server" ID="n_izd" MaxLength="6" placeholder="n_izd" />--%>
             </div>
 

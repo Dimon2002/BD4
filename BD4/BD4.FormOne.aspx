@@ -25,14 +25,13 @@
         <asp:Table ID="Table1" runat="server">
             <asp:TableRow>
                 <asp:TableCell>
-                    <asp:GridView ID="ProductGridView" runat="server" AutoGenerateColumns="False">
+                    <asp:GridView DataKeyNames="n_izd" ID="ProductGridView" runat="server" AutoGenerateColumns="False">
                         <Columns>
                             <asp:TemplateField>
                                 <ItemTemplate>
                                     <asp:RadioButton ID="RadioButton1" runat="server" GroupName="ProductGroup" AutoPostBack="true" OnCheckedChanged="RadioButton_CheckedChanged" />
                                 </ItemTemplate>
                             </asp:TemplateField>
-                            <asp:BoundField DataField="n_izd" HeaderText="n_izd" SortExpression="n_izd" />
                             <asp:BoundField DataField="name" HeaderText="Name" SortExpression="name" />
                             <asp:BoundField DataField="town" HeaderText="Town" SortExpression="town" />
                         </Columns>

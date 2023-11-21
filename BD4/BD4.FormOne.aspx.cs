@@ -182,7 +182,7 @@ public partial class BD4_FormOne : Page
 
         if (ProductGridView.Rows.Count > 0)
         {
-            _selectedProduct = ProductGridView.Rows[0].Cells[1].Text;
+            _selectedProduct = ProductGridView.DataKeys[0]["n_izd"].ToString().Trim();
 
             var radio = ProductGridView.Rows[0].Cells[0].Controls[1] as RadioButton;
             radio.Checked = true;
@@ -209,7 +209,8 @@ public partial class BD4_FormOne : Page
             radio.Checked = false;
         }
 
-        _selectedProduct = ProductGridView.Rows[rowIndex].Cells[1].Text.Trim();
+        var y = ProductGridView.Rows[rowIndex].Cells[0];
+        _selectedProduct = ProductGridView.DataKeys[rowIndex]["n_izd"].ToString().Trim(); 
     }
 
     protected void Button1_Click(object sender, EventArgs e) => Page.Response.Redirect("BD4.FormTwo.aspx");
